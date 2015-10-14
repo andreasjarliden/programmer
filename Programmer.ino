@@ -11,9 +11,12 @@ const byte program0[] = {
  };
 
 const byte program[] = {
-  #include "simpleLoader.h"
-  //#include "echo.h"
+//  #include "io.h"
+//  #include "simpleLoader.h"
+//  #include "echo.h"
+//    #include "bidir.h"
 //  #include "ramTest.h"
+   #include "testPrintString.h"
 #if 0
   0x3e, 0x4f, 0xd3, 0x02, 0x3e, 0xff, 0xd3, 0x03, 
     0x3e, 0x00, 0xd3, 0x03, 0x3e, 0x83, 0xd3, 0x02, 
@@ -52,8 +55,10 @@ void setup() {
     Serial.println("\nReading");
     configureGPBAsInput();
     delay(1);
+    int sum = 0;
     for (int i = 0; i < sizeof(program) / sizeof(byte); ++i) {
         byte b = readByteFromAddress(i + origin);
+        sum += b;
         if (b != program[i]) {
           Serial.println(" Error!");
         }
@@ -61,6 +66,8 @@ void setup() {
           Serial.println();
         }
     }
+    Serial.print("Sum: ");
+    Serial.println(sum);
 }
 
 void writeByteToAddress(byte data, short unsigned address) {
