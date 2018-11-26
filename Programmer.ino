@@ -1,4 +1,5 @@
 #include <Wire.h>
+#include <avr/pgmspace.h>
 #include "shifter.h"
 #include "ioExpander.h"
 
@@ -6,27 +7,21 @@ const int WRITE_PULSE_WIDTH_uS = 150; // min 100uS
 const int pOE_ = 5;
 const int pWE_ = 4;
 
-const byte program0[] = {
-    0x3e, 0x4f, 0xd3, 0x02, 0xdb, 0x00, 0x76
- };
-
-const byte program[] = {
+const byte program[] PROGMEM= {
 //  #include "io.h"
-//  #include "simpleLoader.h"
+//#include "simpleLoader.h"
 //  #include "echo.h"
 //    #include "bidir.h"
 //  #include "ramTest.h"
-   #include "testPrintString.h"
+//   #include "testPrintString.h"
+//   #include "loader3.h"
+ #include "rom.h"
 #if 0
   0x3e, 0x4f, 0xd3, 0x02, 0x3e, 0xff, 0xd3, 0x03, 
     0x3e, 0x00, 0xd3, 0x03, 0x3e, 0x83, 0xd3, 0x02, 
     0x3e, 0x03, 0xd3, 0x03, 0xed, 0x56, 0xfb, 0xdb,   q
     0x00, 0x76, 0xc3, 0x19, 0x00
 #endif
- };
-
-const byte program2[] = {
-    0xdb, 0x00, 0xd3, 0x01, 0xfb, 0xed, 0x4d
  };
 
 void setup() {
@@ -43,24 +38,26 @@ void setup() {
     configureGPBAsOutput();
 
     delay(10); // EEProm Erase Protection requires 5ms delay before write
-    Serial.println("Writing");
+    Serial.println(F("Writing"));
     int origin = 0x0000;
 #if 1
     for (int i = 0; i < sizeof(program)/sizeof(byte); ++i) {
-        writeByteToAddress(program[i], i + origin);
-        // delay(10); // write cycle takes max 10 ms
+      byte b = pgm_read_byte_near(program + i);
+        writeByteToAddress(b, i + origin);
+         delay(10); // write cycle takes max 10 ms
     }
 #endif
 
-    Serial.println("\nReading");
+    Serial.println(F("\nReading"));
     configureGPBAsInput();
     delay(1);
     int sum = 0;
     for (int i = 0; i < sizeof(program) / sizeof(byte); ++i) {
         byte b = readByteFromAddress(i + origin);
         sum += b;
-        if (b != program[i]) {
-          Serial.println(" Error!");
+        byte expected = pgm_read_byte_near(program + i);
+        if (b != expected) {
+          Serial.println(F(" Error!"));
         }
         else {
           Serial.println();
@@ -71,7 +68,7 @@ void setup() {
 }
 
 void writeByteToAddress(byte data, short unsigned address) {
-    Serial.print("Writing ");
+    Serial.print(F("Writing "));
     Serial.print(address, HEX);
     Serial.print(": ");
     Serial.print((int)data, HEX);
@@ -89,7 +86,7 @@ void writeByteToAddress(byte data, short unsigned address) {
 
 void writeAddress(short unsigned address) {
     char highByte = address >> 8;
-    char lowByte = (byte)address;
+    char lowByte = (byte)address & 0xff;
     shifterWriteValue(highByte);
     writeByteToGPA(lowByte);
 }
