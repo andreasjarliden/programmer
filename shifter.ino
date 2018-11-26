@@ -1,5 +1,5 @@
 #include "shifter.h"
-#include "arduino.h"
+#include "Arduino.h"
 
 static const char shifterDataPin = 2;
 static const char shifterClockPin = 3;
